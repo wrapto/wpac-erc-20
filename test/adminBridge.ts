@@ -2,21 +2,20 @@ import { ethers, upgrades } from "hardhat"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { expect } from "chai"
 import { decimal } from "../utils/decimal"
-import { WrappedPAC } from "../src/types"
+import { WrappedPAC } from "../types"
 
 export const shouldBehaveLikeAdminBridge = async () => {
 	let wpac: WrappedPAC
-	let owner: SignerWithAddress, alice: SignerWithAddress, bob: SignerWithAddress, minter: SignerWithAddress, feeCollector: SignerWithAddress
+	let _owner: SignerWithAddress, alice: SignerWithAddress, bob: SignerWithAddress, minter: SignerWithAddress
 	const pacAddr = "tpc1zlymfcuxlgvvuud2q4zw0scllqn74d2f90hld6w"
 
 	before(async () => {
 		const signers = await ethers.getSigners()
 
-		owner = signers[0]
+		_owner = signers[0]
 		alice = signers[1]
 		bob = signers[2]
 		minter = signers[3]
-		feeCollector = signers[4]
 	})
 
 	beforeEach(async () => {
@@ -25,45 +24,41 @@ export const shouldBehaveLikeAdminBridge = async () => {
 		wpac = await WPAC.waitForDeployment()
 
 		await wpac.setMinter(minter)
-		await wpac.setFeeCollector(feeCollector)
 
 		await wpac.connect(minter).mint(bob.address, decimal(100))
+		await wpac.connect(minter).mint(minter.address, decimal(20)) // Give minter some tokens to bridge
 	})
 
-	it("should grant Fee collector correct", async () => {
-		expect(await wpac.FEE_COLLECTOR()).to.be.equal(feeCollector)
+	it("should fail if caller is not minter", async () => {
+		await expect(wpac.connect(alice).adminBridge(pacAddr, decimal(1))).to.be.revertedWith("WPAC: caller is not the minter")
 	})
 
-	it("should fails if caller is not fee collector", async () => {
-		await expect(wpac.connect(alice).adminBridge(pacAddr, decimal(1))).to.be.revertedWith("WrappedPAC: caller is not the fee collector")
+	it("should fail if amount exceeds balance", async () => {
+		await expect(wpac.connect(minter).adminBridge(pacAddr, decimal(21))).to.be.revertedWith("ERC20: burn amount exceeds balance")
+
+		// Minter bridges 8 tokens, now has 12 left
+		await wpac.connect(minter).adminBridge(pacAddr, decimal(8))
+
+		// Minter tries to bridge 13 tokens but only has 12, should fail
+		await expect(wpac.connect(minter).adminBridge(pacAddr, decimal(13))).to.be.revertedWith("ERC20: burn amount exceeds balance")
 	})
 
-	it("should fails if amount exceeds balance", async () => {
-		await expect(wpac.connect(feeCollector).adminBridge(pacAddr, decimal(1))).to.be.revertedWith("ERC20: burn amount exceeds balance")
-
-		await wpac.connect(bob).bridge(pacAddr, decimal(8))
-		await wpac.connect(feeCollector).withdrawFee()
-
-		await expect(wpac.connect(feeCollector).adminBridge(pacAddr, decimal(2))).to.be.revertedWith("ERC20: burn amount exceeds balance")
-	})
-
-	it("should bridging tokens to another blockchain address(FeeCollector)", async () => {
+	it("should bridge tokens to another blockchain address (Minter)", async () => {
 		await wpac.connect(bob).bridge(pacAddr, decimal(8))
 		await wpac.connect(bob).bridge(pacAddr, decimal(10))
-		await wpac.connect(feeCollector).withdrawFee()
 
-		await wpac.connect(feeCollector).adminBridge(pacAddr, decimal(2))
+		// Minter bridges 2 tokens from their balance
+		await wpac.connect(minter).adminBridge(pacAddr, decimal(2))
 
-		const b = await wpac.bridged(3)
+		const event = await wpac.bridged(3)
 
-		expect(await wpac.balanceOf(feeCollector.address)).to.be.equal(0)
-		expect(b.destinationAddress).to.be.equal(pacAddr)
-		expect(b.sender).to.be.equal(feeCollector.address)
-		expect(b.amount).to.be.equal(decimal(2))
-		expect(b.fee).to.be.equal(decimal(0))
+		expect(await wpac.balanceOf(minter.address)).to.be.equal(decimal(18)) // 20 - 2 = 18
+		expect(await wpac.balanceOf(bob.address)).to.be.equal(decimal(82)) // 100 - 8 - 10 = 82
+		expect(event.pactusAddress).to.be.equal(pacAddr)
+		expect(event.sender).to.be.equal(minter.address)
+		expect(event.amount).to.be.equal(decimal(2))
 
-		expect(await wpac.balanceOf(wpac.target)).to.be.equal(0) //Fee
-		expect(await wpac.totalSupply()).to.be.equal(decimal(80)) //burn
-		expect(await wpac.counter()).to.be.equal(3) //counter
+		expect(await wpac.totalSupply()).to.be.equal(decimal(100))
+		expect(await wpac.counter()).to.be.equal(3) // counter
 	})
 }

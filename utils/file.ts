@@ -1,5 +1,5 @@
 import fs from "fs"
-import path from "path" // Import the 'path' module
+import path from "path"
 
 export type Addresses = {
 	proxy?: string
@@ -13,17 +13,19 @@ export function loadAddresses(): Addresses {
 	if (fs.existsSync(filePath)) {
 		output = JSON.parse(fs.readFileSync(filePath, "utf8"))
 	} else {
-		const outputDir = path.join(__dirname, "output")
-		if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir)
-		fs.writeFileSync(filePath, JSON.stringify(output))
+		const outputDir = path.dirname(filePath)
+		if (!fs.existsSync(outputDir)) {
+			fs.mkdirSync(outputDir, { recursive: true })
+		}
+		fs.writeFileSync(filePath, JSON.stringify(output, null, 2))
 	}
 	return output
 }
 
 export function saveAddresses(content: Addresses): void {
-	if (!fs.existsSync(filePath)) {
-		const outputDir = path.join(__dirname, "output")
-		if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir)
+	const outputDir = path.dirname(filePath)
+	if (!fs.existsSync(outputDir)) {
+		fs.mkdirSync(outputDir, { recursive: true })
 	}
-	fs.writeFileSync(filePath, JSON.stringify(content))
+	fs.writeFileSync(filePath, JSON.stringify(content, null, 2))
 }

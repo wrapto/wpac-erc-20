@@ -8,30 +8,14 @@ async function main() {
 
 	const V2Contract = await ethers.getContractFactory("WrappedPAC")
 
-	await upgrades.forceImport(UPGRADEABLE_PROXY, V2Contract)
-
-	// Verify current implementation
-	const currentImplementation = await upgrades.erc1967.getImplementationAddress(UPGRADEABLE_PROXY)
-	console.log("Current Implementation Address:", currentImplementation)
-
-	console.log("Upgrading Contract...")
-
-	// Force deploy new implementation if necessary
-	const newImplementation = await upgrades.deployImplementation(V2Contract)
-	console.log("New Implementation Deployed At:", newImplementation)
-
-	if (currentImplementation === newImplementation) {
-		throw new Error("New implementation matches the current implementation. No upgrade needed.")
-	}
-
 	// Perform the upgrade
-	let upgrade = await upgrades.upgradeProxy(UPGRADEABLE_PROXY, V2Contract)
+	const upgrade = await upgrades.upgradeProxy(UPGRADEABLE_PROXY, V2Contract)
 	await upgrade.waitForDeployment()
 
 	console.log("Successfully upgraded ✅")
-	console.log("New Contract Deployed To:", upgrade.address)
+	console.log("Proxy Address:", await upgrade.getAddress())
+	console.log("Implementation Address:", await upgrades.erc1967.getImplementationAddress(await upgrade.getAddress()))
 
-	setInterval(() => {}, 15000)
 
 	const addresses = {
 		proxy: UPGRADEABLE_PROXY,

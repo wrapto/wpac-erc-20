@@ -3,23 +3,17 @@
 	"description": "wrapped tokens of teleport protocol contracts.",
 	"version": "1.0.0",
 	"main": "index.js",
-	"workspaces": [
-		"contracts/evm/*",
-		"packages/eslint-config"
-	],
 	"scripts": {
 		"node": "npx hardhat node",
-		"compile": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat compile",
-		"clean": "shx rm -rf ./artifacts ./cache ./coverage ./src/types ./coverage.json && yarn typechain",
+		"compile": "TS_NODE_TRANSPILE_ONLY=true hardhat compile",
+		"clean": "rm -rf ./artifacts ./cache ./coverage ./src/types ./coverage.json",
 		"lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
-		"lint:ts": "eslint --config ./.eslintrc.yml --ignore-path ./.eslintignore --ext .js,.ts .",
 		"test": "hardhat test",
-		"typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
+		"typechain": "TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
 	},
 	"devDependencies": {
 		"@nomicfoundation/hardhat-toolbox": "^4.0.0",
-		"hardhat": "^2.21.0",
-		"husky": "^8.0.3"
+		"hardhat": "^2.21.0"
 	},
 	"keywords": [],
 	"author": "",

@@ -1,7 +1,6 @@
 import { ethers, upgrades } from "hardhat"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { expect } from "chai"
-import { decimal } from "../utils/decimal"
 
 export const shouldBehaveLikeInitialize = async () => {
 	let wpac: any
@@ -15,12 +14,10 @@ export const shouldBehaveLikeInitialize = async () => {
 		wpac = await WPAC.waitForDeployment()
 	})
 
-	it("should init correct", async () => {
+	it("should initialize correctly", async () => {
 		expect(await wpac.owner()).to.be.equal(owner.address)
-		expect(await wpac.MIN_FEE()).to.be.equal(decimal(1))
-		expect(await wpac.MAX_FEE()).to.be.equal(decimal(5))
 		expect(await wpac.counter()).to.be.equal(0)
 		expect(await wpac.decimals()).to.be.equal(9)
-        expect(await wpac.paused()).to.be.equal(false)
+		expect(await wpac.paused()).to.be.equal(false)
 	})
 }

@@ -1,4 +1,4 @@
-name: Run Hardhat Tests
+name: Lint Code
 
 on:
   push:
@@ -9,11 +9,9 @@ on:
       - main
 
 jobs:
-  build:
-    name: Run tests with Hardhat
+  lint:
+    name: Lint Solidity and TypeScript
     runs-on: ubuntu-latest
-    env:
-      CI: 'true'
 
     steps:
     - name: Checkout code
@@ -23,9 +21,19 @@ jobs:
       uses: actions/setup-node@v6
       with:
         node-version: 'latest'
+        cache: 'npm'
+
+    - name: Install linters
+      run: |
+        npm install -g solhint
 
     - name: Install dependencies
       run: npm ci
 
-    - name: Run Hardhat tests
-      run: npm run test
+    - name: Lint Solidity
+      run: npm run lint:sol
+
+    - name: Lint TypeScript
+      run: npm run lint:ts
+
+

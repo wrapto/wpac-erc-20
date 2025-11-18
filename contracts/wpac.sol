@@ -10,57 +10,74 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 /**
  * @title WrappedPAC (WPAC)
- *
- * @custom:developer dezh technologies <hi@dezh.tech>
- * @custom:contact https://dezh.tech
+ * @notice Wrapped PAC (WPAC) token contract for bridging PAC coins between EVM blockchains and Pactus blockchain.
+ * @author Wrapto <support@wrapto.app>
+ * @custom:developer Wrapto <support@wrapto.app>
+ * @custom:contact https://wrapto.app
  * @custom:version 0.0.2
  * @custom:license MIT
  */
 contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, ERC20Upgradeable, UUPSUpgradeable {
-	// Struct to store details of a bridge event
+	/**
+	 * @notice Struct to store details of a bridge event
+	 * @dev Stores the details when tokens are bridged from EVM chain to Pactus blockchain
+	 */
 	struct BridgeEvent {
 		address sender; // Address of the sender
-		uint256 amount; // Amount of WPAC tokens bridged
-		string destinationAddress; // Destination address on the target chain
-		uint256 fee; // Fee charged for the bridge
+		uint256 amount; // Amount of WPAC tokens bridged (in smallest unit, 9 decimals)
+		string pactus; // Pactus blockchain address that will receive the coins
 	}
 
-	// Constants for fee calculation
-	uint256 public constant MIN_FEE = 1_000_000_000; // 1 WPAC
-	uint256 public constant MAX_FEE = 5_000_000_000; // 5 WPAC
-
-	// Mapping to store bridge events by a unique identifier (counter)
+	/**
+	 * @notice Mapping to store bridge events by a unique identifier (counter)
+	 * @dev The mapping is used to store the bridge events by a unique identifier (counter).
+	 */
 	mapping(uint256 => BridgeEvent) public bridged;
 
-	// Counter for tracking bridge events
+	/**
+	 * @notice Counter for tracking bridge events
+	 * @dev The counter is used to track the number of bridge events.
+	 */
 	uint256 public counter;
 
+	/**
+	 * @notice MINTER is the address that can mint new tokens.
+	 * @dev The MINTER is the address that can mint new tokens.
+	 */
 	address public MINTER;
-	address public FEE_COLLECTOR;
 
-	// Events
-	event Bridge(address indexed sender, uint256 amount, string destinationAddress, uint256 fee);
+	/**
+	 * @notice RESERVED is unused.
+	 * @dev The RESERVED is unused.
+	 */
+	address public RESERVED;
+
+	/**
+	 * @notice Emitted when tokens are bridged to the Pactus blockchain
+	 * @param sender Address of the sender
+	 * @param amount Amount of WPAC tokens bridged
+	 * @param pactusAddress Pactus blockchain address that will receive the coins
+	 */
+	event Bridge(address indexed sender, uint256 amount, string pactusAddress);
+
+	/**
+	 * @notice Emitted when the minter address is set
+	 * @param minter Address of the new minter
+	 */
 	event SetMinter(address indexed minter);
-	event SetFeeCollector(address indexed feeCollector);
 
+	/**
+	 * @notice Modifier to check if the caller is the minter.
+	 * @param caller The address of the caller.
+	 */
 	modifier OnlyMinter(address caller) {
-		require(caller == MINTER, "WrappedPAC: caller is not the minter");
+		require(caller == MINTER, "WPAC: caller is not the minter");
 		_;
-	}
-
-	modifier OnlyFeeCollector(address caller) {
-		require(caller == FEE_COLLECTOR, "WrappedPAC: caller is not the fee collector");
-		_;
-	}
-
-	/// @custom:oz-upgrades-unsafe-allow constructor
-	constructor() {
-		_disableInitializers();
 	}
 
 	/**
 	 * @notice Initializes the contract.
-	 * @dev Sets the token name and symbol, initializes the ownership, and enables UUPS upgradeability.
+	 * @dev Sets the token name and symbol, initializes the ownership, pausable, and enables UUPS upgradeability.
 	 */
 	function initialize() public initializer {
 		__ERC20_init("Wrapped PAC", "WPAC");
@@ -78,7 +95,7 @@ contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, E
 
 	/**
 	 * @notice Mints new tokens to a specified address.
-	 * @dev Requires the caller to have the MINTER_ROLE.
+	 * @dev Requires the caller to be the minter.
 	 * @param to The address to receive the minted tokens.
 	 * @param amount The amount of tokens to mint.
 	 */
@@ -87,80 +104,52 @@ contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, E
 	}
 
 	/**
-	 * @notice Calculates the bridge fee for a given amount.
-	 * @param amount The amount to bridge.
-	 * @return The calculated fee, constrained by MIN_FEE and MAX_FEE.
-	 */
-	function getFee(uint256 amount) public pure returns (uint256) {
-		uint256 f = Math.ceilDiv(amount, 200); // 0.5%
-
-		if (f <= MIN_FEE) {
-			return MIN_FEE;
-		}
-
-		if (f >= MAX_FEE) {
-			return MAX_FEE;
-		}
-
-		return f;
-	}
-
-	/**
-	 * @notice Bridges tokens to another chain.
+	 * @notice Internal function to handle the common bridge logic.
 	 * @dev Burns the sender's tokens and records the bridge event.
-	 * @param destinationAddress The address on the destination chain.
-	 * @param value The amount of tokens to bridge.
+	 * @param pactusAddress The Pactus blockchain address that will receive the coins
+	 * @param value The amount of WPAC tokens to bridge
 	 */
-	function bridge(string memory destinationAddress, uint256 value) public whenNotPaused {
-		require(value > (1 * 1e9), "WrappedPAC: value is low.");
-
-		uint256 fee = getFee(value);
-		_transfer(_msgSender(), address(this), fee); // Transfer fee to the contract
-
-		_burn(_msgSender(), value); // Burn the tokens
-
-		emit Bridge(_msgSender(), value, destinationAddress, fee);
-		counter++;
-		bridged[counter] = BridgeEvent(_msgSender(), value, destinationAddress, fee);
-	}
-
-	/**
-	 * @notice Bridges tokens administratively without charging a fee.
-	 * @dev Only callable by accounts with the FEE_COLLECTOR_ROLE.
-	 * @param destinationAddress The address on the destination chain.
-	 * @param value The amount of tokens to bridge.
-	 */
-	function adminBridge(string memory destinationAddress, uint256 value) public whenNotPaused OnlyFeeCollector(_msgSender()) {
+	function _bridge(string memory pactusAddress, uint256 value) internal {
+		// Perform token burn first (fail fast if insufficient balance)
 		_burn(_msgSender(), value);
-		emit Bridge(_msgSender(), value, destinationAddress, 0);
-		counter++;
-		bridged[counter] = BridgeEvent(_msgSender(), value, destinationAddress, 0);
+
+		// Update tracking state after successful burn
+		++counter;
+		bridged[counter] = BridgeEvent(_msgSender(), value, pactusAddress);
+
+		// Emit event after all state changes are complete
+		emit Bridge(_msgSender(), value, pactusAddress);
 	}
 
 	/**
-	 * @notice Withdraws all accumulated fees from the contract.
-	 * @dev Only callable by accounts with the FEE_COLLECTOR_ROLE.
+	 * @notice Bridges tokens to the Pactus blockchain.
+	 * @dev Burns the sender's tokens and records the bridge event.
+	 * @param pactusAddress The Pactus blockchain address that will receive the coins
+	 * @param value The amount of WPAC tokens to bridge
 	 */
-	function withdrawFee() public OnlyFeeCollector(_msgSender()) {
-		_transfer(address(this), _msgSender(), balanceOf(address(this)));
+	function bridge(string memory pactusAddress, uint256 value) public whenNotPaused {
+		require(value > (1 * 1e9), "WPAC: value is low.");
+		_bridge(pactusAddress, value);
 	}
 
 	/**
-	 * @notice Sets the FEE_COLLECTOR_ROLE for a given address.
-	 * @dev Only callable by the contract owner. Grants the FEE_COLLECTOR_ROLE to the specified address.
-	 * @param _feeCollectorAddress The address to grant the FEE_COLLECTOR_ROLE.
+	 * @notice Bridges tokens administratively to the Pactus blockchain.
+	 * @dev Only callable by the MINTER.
+	 * @param pactusAddress The Pactus blockchain address that will receive the coins
+	 * @param value The amount of WPAC tokens to bridge
 	 */
-	function setFeeCollector(address _feeCollectorAddress) public onlyOwner {
-		FEE_COLLECTOR = _feeCollectorAddress;
-		emit SetFeeCollector(_feeCollectorAddress);
+	function adminBridge(string memory pactusAddress, uint256 value) public OnlyMinter(_msgSender()) {
+		_bridge(pactusAddress, value);
 	}
 
 	/**
-	 * @notice Sets the MINTER_ROLE for a given address.
-	 * @dev Only callable by the contract owner. Grants the MINTER_ROLE to the specified address.
-	 * @param _minterAddress The address to grant the MINTER_ROLE.
+	 * @notice Sets the minter address.
+	 * @dev Only callable by the contract owner. Sets the minter to the specified address.
+	 * @param _minterAddress The address to set as the minter.
 	 */
 	function setMinter(address _minterAddress) public onlyOwner {
+		require(_minterAddress != address(0), "WPAC: minter cannot be zero");
+
 		MINTER = _minterAddress;
 		emit SetMinter(_minterAddress);
 	}
@@ -171,4 +160,20 @@ contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, E
 	 * @param newImplementation The address of the new implementation.
 	 */
 	function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+	/**
+	 * @notice Pauses the contract.
+	 * @dev Only callable by the contract owner.
+	 */
+	function pause() public onlyOwner {
+		_pause();
+	}
+
+	/**
+	 * @notice Unpauses the contract.
+	 * @dev Only callable by the contract owner.
+	 */
+	function unpause() public onlyOwner {
+		_unpause();
+	}
 }

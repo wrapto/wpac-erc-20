@@ -1,0 +1,13 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "no-global-import": "off",
+    "var-name-mixedcase": "off",
+    "func-visibility": ["error", { "ignoreConstructors": true }],
+    "no-empty-blocks": "off",
+    "gas-strict-inequalities": "off",
+    "gas-custom-errors": "off",
+    "gas-indexed-events": "off",
+    "compiler-version": "off"
+  }
+}
