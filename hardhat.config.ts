@@ -18,189 +18,164 @@ const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
 const Ethereum_SEPOLIA_RPC = process.env.Ethereum_SEPOLIA_RPC;
 
 // Mainnet RPC URLs
-const POLYGON_RPC = process.env.POLYGON_RPC_URL;
-const BSC_RPC = process.env.BSC_RPC;
-const BASE_RPC = process.env.BASE_RPC;
-const ETHEREUM_RPC = process.env.ETHEREUM_RPC;
+const POLYGON_MAINNET_RPC = process.env.POLYGON_MAINNET_RPC;
+const BSC_MAINNET_RPC = process.env.BSC_MAINNET_RPC;
+const BASE_MAINNET_RPC = process.env.BASE_MAINNET_RPC;
+const ETHEREUM_MAINNET_RPC = process.env.ETHEREUM_MAINNET_RPC;
+
+// Proxy addresses for each network (these don't change after deployment)
+export const PROXY_ADDRESSES: Record<string, string> = {
+	localhost: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+	polygon_amoy: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
+	bsc_testnet: "0xA9A2511Bb9cE4aCF4F02D679Af836a0fcC8c8AF7",
+	base_sepolia: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
+	ethereum_sepolia: "",
+	polygon: "",
+	bsc: "",
+	base: "",
+	ethereum: "",
+};
 
 let config: HardhatUserConfig;
 
-if (!process.env.CI) {
-
-	config = {
-		defaultNetwork: "hardhat",
-		solidity: "0.8.20",
-		networks: {
-			hardhat: {
-				allowUnlimitedContractSize: false,
+config = {
+	defaultNetwork: "hardhat",
+	solidity: "0.8.20",
+	networks: {
+		hardhat: {
+			allowUnlimitedContractSize: false,
+		},
+		// Testnet Networks
+		...(POLYGON_AMOY_RPC && {
+			polygon_amoy: {
+				url: POLYGON_AMOY_RPC,
+				accounts: account ? [account] : [],
 			},
-			// Testnet Networks
-			...(POLYGON_AMOY_RPC && {
-				polygon_amoy: {
-					url: POLYGON_AMOY_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(BSC_TESTNET_RPC && {
-				bsc_testnet: {
-					url: BSC_TESTNET_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(BASE_SEPOLIA_RPC && {
-				base_sepolia: {
-					url: BASE_SEPOLIA_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(Ethereum_SEPOLIA_RPC && {
-				ethereum_sepolia: {
-					url: Ethereum_SEPOLIA_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			// Mainnet Networks
-			...(POLYGON_RPC && {
-				polygon: {
-					url: POLYGON_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(BSC_RPC && {
-				bsc: {
-					url: BSC_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(BASE_RPC && {
-				base: {
-					url: BASE_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-			...(ETHEREUM_RPC && {
-				ethereum: {
-					url: ETHEREUM_RPC,
-					accounts: account ? [account] : [],
-				},
-			}),
-		},
-		etherscan: {
-			apiKey: {
-				bsc_testnet: etherscanApiKey!,
-				polygon_amoy: etherscanApiKey!,
-				base_sepolia: etherscanApiKey!,
-				ethereum_sepolia: etherscanApiKey!,
-				polygon: etherscanApiKey!,
-				bsc: etherscanApiKey!,
-				base: etherscanApiKey!,
-				ethereum: etherscanApiKey!,
+		}),
+		...(BSC_TESTNET_RPC && {
+			bsc_testnet: {
+				url: BSC_TESTNET_RPC,
+				accounts: account ? [account] : [],
 			},
-			customChains: [
-				{
-					network: "bsc_testnet",
-					chainId: 97,
-					urls: {
-						apiURL: "https://api-testnet.bscscan.com/api",
-						browserURL: "https://testnet.bscscan.com",
-					},
-				},
-				{
-					network: "polygon_amoy",
-					chainId: 80002,
-					urls: {
-						apiURL: "https://api-amoy.polygonscan.com/api",
-						browserURL: "https://amoy.polygonscan.com",
-					},
-				},
-				{
-					network: "base_sepolia",
-					chainId: 84532,
-					urls: {
-						apiURL: "https://api-sepolia.basescan.org/api",
-						browserURL: "https://sepolia.basescan.org",
-					},
-				},
-				{
-					network: "ethereum_sepolia",
-					chainId: 11155111,
-					urls: {
-						apiURL: "https://api-sepolia.etherscan.io/api",
-						browserURL: "https://sepolia.etherscan.io",
-					},
-				},
-				{
-					network: "polygon",
-					chainId: 137,
-					urls: {
-						apiURL: "https://api.polygonscan.com/api",
-						browserURL: "https://polygonscan.com",
-					},
-				},
-				{
-					network: "bsc",
-					chainId: 56,
-					urls: {
-						apiURL: "https://api.bscscan.com/api",
-						browserURL: "https://bscscan.com",
-					},
-				},
-				{
-					network: "base",
-					chainId: 8453,
-					urls: {
-						apiURL: "https://api.basescan.org/api",
-						browserURL: "https://basescan.com",
-					},
-				},
-			],
-		},
-		gasReporter: {
-			currency: "USD",
-			enabled: true,
-			excludeContracts: [],
-			src: "./contracts",
-		},
-		typechain: {
-			outDir: "./types",
-		},
-		mocha: {
-			timeout: 100000000,
-		},
-		paths: {
-			artifacts: "./artifacts",
-			cache: "./cache",
-			sources: "./contracts",
-		},
-	};
-} else {
-	config = {
-		defaultNetwork: "hardhat",
-		solidity: "0.8.20",
-		networks: {
-			hardhat: {
-				allowUnlimitedContractSize: false,
+		}),
+		...(BASE_SEPOLIA_RPC && {
+			base_sepolia: {
+				url: BASE_SEPOLIA_RPC,
+				accounts: account ? [account] : [],
 			},
-		},
-		gasReporter: {
-			currency: "USD",
-			enabled: true,
-			excludeContracts: [],
-			src: "./contracts",
-		},
-		typechain: {
-			outDir: "./types",
-		},
-		mocha: {
-			timeout: 100000000,
-		},
-		paths: {
-			artifacts: "./artifacts",
-			cache: "./cache",
-			sources: "./contracts",
-		},
-	};
-}
+		}),
+		...(Ethereum_SEPOLIA_RPC && {
+			ethereum_sepolia: {
+				url: Ethereum_SEPOLIA_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
+		// Mainnet Networks
+		...(POLYGON_MAINNET_RPC && {
+			polygon: {
+				url: POLYGON_MAINNET_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
+		...(BSC_MAINNET_RPC && {
+			bsc: {
+				url: BSC_MAINNET_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
+		...(BASE_MAINNET_RPC && {
+			base: {
+				url: BASE_MAINNET_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
+		...(ETHEREUM_MAINNET_RPC && {
+			ethereum: {
+				url: ETHEREUM_MAINNET_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
+	},
+	etherscan: {
+		apiKey: etherscanApiKey!,
+		customChains: [
+			{
+				network: "bsc_testnet",
+				chainId: 97,
+				urls: {
+					apiURL: "https://api-testnet.bscscan.com/api",
+					browserURL: "https://testnet.bscscan.com",
+				},
+			},
+			{
+				network: "polygon_amoy",
+				chainId: 80002,
+				urls: {
+					apiURL: "https://api-amoy.polygonscan.com/api",
+					browserURL: "https://amoy.polygonscan.com",
+				},
+			},
+			{
+				network: "base_sepolia",
+				chainId: 84532,
+				urls: {
+					apiURL: "https://api-sepolia.basescan.org/api",
+					browserURL: "https://sepolia.basescan.org",
+				},
+			},
+			{
+				network: "ethereum_sepolia",
+				chainId: 11155111,
+				urls: {
+					apiURL: "https://api-sepolia.etherscan.io/api",
+					browserURL: "https://sepolia.etherscan.io",
+				},
+			},
+			{
+				network: "polygon",
+				chainId: 137,
+				urls: {
+					apiURL: "https://api.polygonscan.com/api",
+					browserURL: "https://polygonscan.com",
+				},
+			},
+			{
+				network: "bsc",
+				chainId: 56,
+				urls: {
+					apiURL: "https://api.bscscan.com/api",
+					browserURL: "https://bscscan.com",
+				},
+			},
+			{
+				network: "base",
+				chainId: 8453,
+				urls: {
+					apiURL: "https://api.basescan.org/api",
+					browserURL: "https://basescan.com",
+				},
+			},
+		],
+	},
+	gasReporter: {
+		currency: "USD",
+		enabled: true,
+		excludeContracts: [],
+		src: "./contracts",
+	},
+	typechain: {
+		outDir: "./types",
+	},
+	mocha: {
+		timeout: 100000000,
+	},
+	paths: {
+		artifacts: "./artifacts",
+		cache: "./cache",
+		sources: "./contracts",
+		tests: "./test",
+	},
+};
 
 export default config;
 

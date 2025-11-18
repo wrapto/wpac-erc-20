@@ -17,7 +17,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  * @custom:version 0.0.2
  * @custom:license MIT
  */
-contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, ERC20Upgradeable, UUPSUpgradeable {
+contract WrappedPACv2 is Initializable, OwnableUpgradeable, PausableUpgradeable, ERC20Upgradeable, UUPSUpgradeable {
 	/**
 	 * @notice Struct to store details of a bridge event
 	 * @dev Stores the details when tokens are bridged from EVM chain to Pactus blockchain
@@ -25,7 +25,7 @@ contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, E
 	struct BridgeEvent {
 		address sender; // Address of the sender
 		uint256 amount; // Amount of WPAC tokens bridged (in smallest unit, 9 decimals)
-		string pactus; // Pactus blockchain address that will receive the coins
+		string pactusAddress; // PactusAddress blockchain address that will receive the coins
 	}
 
 	/**
@@ -124,7 +124,7 @@ contract WrappedPAC is Initializable, OwnableUpgradeable, PausableUpgradeable, E
 	/**
 	 * @notice Bridges tokens to the Pactus blockchain.
 	 * @dev Burns the sender's tokens and records the bridge event.
-	 * @param pactusAddress The Pactus blockchain address that will receive the coins
+	 * @param pactusAddress The Pactus blockchain address that will receive the coins, starts with "pc1...".
 	 * @param value The amount of WPAC tokens to bridge
 	 */
 	function bridge(string memory pactusAddress, uint256 value) public whenNotPaused {

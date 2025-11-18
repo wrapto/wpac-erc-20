@@ -11,8 +11,8 @@ WPAC tokens are wrapped tokens provided by the Wrapto platform. The token contra
 To get started with the project, follow these steps:
 
 ```bash
-git clone https://github.com/wrapto/erc-20.git
-cd erc-20
+git clone https://github.com/wrapto/wpac-erc-20.git
+cd wpac-erc-20
 npm install
 ```
 
@@ -55,6 +55,13 @@ npx hardhat run ./scripts/upgrade.ts --network <NETWORK-NAME>
 - `base` - Base Mainnet
 - `ethereum` - Ethereum Mainnet
 
+## Using Trezor Hardware Wallet
+
+To deploy or upgrade using a Trezor hardware wallet, set the `TREZOR_BIP44_PATH` environment variable and then:
+
+```bash
+npx hardhat run ./scripts/upgrade.ts --network <NETWORK-NAME>
+```
 
 ## Available Scripts
 

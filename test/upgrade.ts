@@ -16,7 +16,7 @@ export const shouldBehaveLikeUpgrade = async () => {
 		alice = signers[1]
 		minter = signers[2]
 
-		const Factory = await ethers.getContractFactory("WrappedPAC")
+		const Factory = await ethers.getContractFactory("WrappedPACv2")
 		const WPAC = await upgrades.deployProxy(Factory, undefined, { initializer: "initialize" })
 		wpac = await WPAC.waitForDeployment()
 
@@ -43,9 +43,9 @@ export const shouldBehaveLikeUpgrade = async () => {
 		const initialDecimals = await wpac.decimals()
 
 		// Perform upgrade
-		const V2Factory = await ethers.getContractFactory("WrappedPAC")
+		const V2Factory = await ethers.getContractFactory("WrappedPACv2")
 		await upgrades.upgradeProxy(proxyAddress, V2Factory)
-		const upgraded = await ethers.getContractAt("WrappedPAC", proxyAddress)
+		const upgraded = await ethers.getContractAt("WrappedPACv2", proxyAddress)
 
 		// Verify state is preserved
 		expect(await upgraded.owner()).to.be.equal(initialOwner)
@@ -63,7 +63,7 @@ export const shouldBehaveLikeUpgrade = async () => {
 		expect(beforeImplementation).to.not.equal(ethers.ZeroAddress)
 
 		// Perform upgrade
-		const V2Factory = await ethers.getContractFactory("WrappedPAC")
+		const V2Factory = await ethers.getContractFactory("WrappedPACv2")
 		await upgrades.upgradeProxy(proxyAddress, V2Factory)
 
 		const afterImplementation = await upgrades.erc1967.getImplementationAddress(proxyAddress)
@@ -75,23 +75,23 @@ export const shouldBehaveLikeUpgrade = async () => {
 
 	it("should only allow owner to upgrade", async () => {
 		// Deploy a new implementation contract
-		const V2Factory = await ethers.getContractFactory("WrappedPAC")
+		const V2Factory = await ethers.getContractFactory("WrappedPACv2")
 		const newImplementation = await V2Factory.deploy()
 		await newImplementation.waitForDeployment()
 		const newImplementationAddress = await newImplementation.getAddress()
 
 		// Get the proxy contract and try to upgrade as non-owner
 		// The upgradeToAndCall function should revert with OwnableUnauthorizedAccount
-		const proxy = await ethers.getContractAt("WrappedPAC", proxyAddress)
+		const proxy = await ethers.getContractAt("WrappedPACv2", proxyAddress)
 
 		// Non-owner should not be able to upgrade
 		await expect(proxy.connect(alice).upgradeToAndCall(newImplementationAddress, "0x")).to.be.revertedWith("Ownable: caller is not the owner")
 	})
 
 	it("should maintain functionality after upgrade", async () => {
-		const V2Factory = await ethers.getContractFactory("WrappedPAC")
+		const V2Factory = await ethers.getContractFactory("WrappedPACv2")
 		await upgrades.upgradeProxy(proxyAddress, V2Factory)
-		const upgraded = await ethers.getContractAt("WrappedPAC", proxyAddress)
+		const upgraded = await ethers.getContractAt("WrappedPACv2", proxyAddress)
 
 		// Test that minting still works
 		await upgraded.connect(minter).mint(alice.address, decimal(10))
@@ -107,9 +107,9 @@ export const shouldBehaveLikeUpgrade = async () => {
 	it("should maintain proxy address after upgrade", async () => {
 		const beforeProxy = await wpac.getAddress()
 
-		const V2Factory = await ethers.getContractFactory("WrappedPAC")
+		const V2Factory = await ethers.getContractFactory("WrappedPACv2")
 		await upgrades.upgradeProxy(proxyAddress, V2Factory)
-		const upgraded = await ethers.getContractAt("WrappedPAC", proxyAddress)
+		const upgraded = await ethers.getContractAt("WrappedPACv2", proxyAddress)
 
 		const afterProxy = await upgraded.getAddress()
 

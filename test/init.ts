@@ -9,7 +9,7 @@ export const shouldBehaveLikeInitialize = async () => {
 	before(async () => {
 		const signers = await ethers.getSigners()
 		owner = signers[0]
-		const Factory = await ethers.getContractFactory("WrappedPAC")
+		const Factory = await ethers.getContractFactory("WrappedPACv2")
 		const WPAC = await upgrades.deployProxy(Factory, undefined, { initializer: "initialize" })
 		wpac = await WPAC.waitForDeployment()
 	})
