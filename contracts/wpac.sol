@@ -25,7 +25,8 @@ contract WrappedPACv2 is Initializable, OwnableUpgradeable, PausableUpgradeable,
 	struct BridgeEvent {
 		address sender; // Address of the sender
 		uint256 amount; // Amount of WPAC tokens bridged (in smallest unit, 9 decimals)
-		string pactusAddress; // PactusAddress blockchain address that will receive the coins
+		string pactusAddress; // Address in Pactus blockchain that will receive the coins
+		uint256 fee; // Fee for the bridge operation.
 	}
 
 	/**
@@ -50,15 +51,16 @@ contract WrappedPACv2 is Initializable, OwnableUpgradeable, PausableUpgradeable,
 	 * @notice RESERVED is unused.
 	 * @dev The RESERVED is unused.
 	 */
-	address public RESERVED;
+	address private RESERVED;
 
 	/**
 	 * @notice Emitted when tokens are bridged to the Pactus blockchain
 	 * @param sender Address of the sender
 	 * @param amount Amount of WPAC tokens bridged
 	 * @param pactusAddress Pactus blockchain address that will receive the coins
+	 * @param fee Fee for the bridge operation.
 	 */
-	event Bridge(address indexed sender, uint256 amount, string pactusAddress);
+	event Bridge(address indexed sender, uint256 amount, string pactusAddress, uint256 fee);
 
 	/**
 	 * @notice Emitted when the minter address is set
@@ -115,10 +117,10 @@ contract WrappedPACv2 is Initializable, OwnableUpgradeable, PausableUpgradeable,
 
 		// Update tracking state after successful burn
 		++counter;
-		bridged[counter] = BridgeEvent(_msgSender(), value, pactusAddress);
+		bridged[counter] = BridgeEvent(_msgSender(), value, pactusAddress, 0);
 
 		// Emit event after all state changes are complete
-		emit Bridge(_msgSender(), value, pactusAddress);
+		emit Bridge(_msgSender(), value, pactusAddress, 0);
 	}
 
 	/**

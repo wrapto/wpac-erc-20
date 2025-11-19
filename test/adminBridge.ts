@@ -2,10 +2,10 @@ import { ethers, upgrades } from "hardhat"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { expect } from "chai"
 import { decimal } from "../utils/decimal"
-import { WrappedPAC } from "../types"
+import { WrappedPACv2 } from "../types"
 
 export const shouldBehaveLikeAdminBridge = async () => {
-	let wpac: WrappedPAC
+	let wpac: WrappedPACv2
 	let _owner: SignerWithAddress, alice: SignerWithAddress, bob: SignerWithAddress, minter: SignerWithAddress
 	const pacAddr = "tpc1zlymfcuxlgvvuud2q4zw0scllqn74d2f90hld6w"
 
@@ -57,6 +57,7 @@ export const shouldBehaveLikeAdminBridge = async () => {
 		expect(event.pactusAddress).to.be.equal(pacAddr)
 		expect(event.sender).to.be.equal(minter.address)
 		expect(event.amount).to.be.equal(decimal(2))
+		expect(event.fee).to.be.equal(decimal(0))
 
 		expect(await wpac.totalSupply()).to.be.equal(decimal(100))
 		expect(await wpac.counter()).to.be.equal(3) // counter

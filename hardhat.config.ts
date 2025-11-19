@@ -40,7 +40,15 @@ let config: HardhatUserConfig;
 
 config = {
 	defaultNetwork: "hardhat",
-	solidity: "0.8.20",
+	solidity: {
+		version: "0.8.20",
+		settings: {
+		  optimizer: {
+			enabled: true,
+			runs: 200
+		  }
+		}
+	},
 	networks: {
 		hardhat: {
 			allowUnlimitedContractSize: false,

@@ -128,15 +128,6 @@ class HardwareTrezorSigner extends AbstractSigner {
 			throw new Error("Missing nonce for transaction")
 		}
 
-		// console.log("bipPath", this.path)
-		// console.log("gasPrice", gasPrice)
-		// console.log("gasLimit", gasLimit)
-		// console.log("nonce", nonce)
-		// console.log("chainId", chainId)
-		// console.log("toAddress", toAddress as string)
-		// console.log("value", resolved.value ?? tx.value ?? 0n)
-		// console.log("data", data)
-
 		const trezorTx = {
 			to: toAddress as string,
 			value: toHex(resolved.value ?? 0n),
@@ -157,9 +148,9 @@ class HardwareTrezorSigner extends AbstractSigner {
 			throw new Error(`Trezor failed to sign transaction: ${response.payload.error}`)
 		}
 
-		console.log("========================")
-		console.log(response.payload.serializedTx)
-		console.log("========================")
+		// console.log("========================")
+		// console.log(response.payload.serializedTx)
+		// console.log("========================")
 
 		return response.payload.serializedTx
 	}

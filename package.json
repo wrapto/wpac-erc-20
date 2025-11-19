@@ -6,7 +6,7 @@
 	"scripts": {
 		"node": "npx hardhat node",
 		"compile": "TS_NODE_TRANSPILE_ONLY=true hardhat compile",
-		"clean": "rm -rf ./artifacts ./cache ./coverage ./src/types ./coverage.json",
+		"clean": "rm -rf ./artifacts ./cache ./coverage ./types ./coverage.json",
 		"lint:sol": "solhint --config ./.solhint.json --max-warnings 0 \"contracts/**/*.sol\"",
 		"test": "hardhat test",
 		"typechain": "TS_NODE_TRANSPILE_ONLY=true hardhat typechain"

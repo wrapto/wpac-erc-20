@@ -24,11 +24,19 @@ You need to manually adjust parameters in `hardhat.config.ts` such as defining R
 
 ### Deploying
 
-To deploy to a specific network:
+There are two deployment entry points, depending on whether you want a standalone contract or an upgradeable proxy setup:
 
-```bash
-npx hardhat run ./scripts/deploy.ts --network <NETWORK-NAME>
-```
+- **Deploy only the implementation (no proxy):**
+
+  ```bash
+  npx hardhat run ./scripts/deploy_contract.ts --network <NETWORK-NAME>
+  ```
+
+- **Deploy a proxy + implementation pair:**
+
+  ```bash
+  npx hardhat run ./scripts/deploy_proxy.ts --network <NETWORK-NAME>
+  ```
 
 ### Upgrading
 
@@ -71,8 +79,7 @@ In the project directory, you can run the following scripts:
 - `npm run compile`: Compiles the Solidity contracts.
 - `npm run clean`: Cleans up artifacts, cache, coverage, and typechain files.
 - `npm run lint:sol`: Lints the Solidity contracts using Solhint.
-- `npm run lint:ts`: Lints the TypeScript files using ESLint.
-- `npm run test`: Runs the Hardhat tests.
+- `npm run test`: Runs the Hardhat test suite.
 - `npm run typechain`: Generates TypeScript bindings for the Solidity contracts.
 
 ## Contract Overview

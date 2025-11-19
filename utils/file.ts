@@ -5,6 +5,7 @@ export type Addresses = {
 	proxy?: string
 	latestVersion?: string
 	admin?: string
+	implementation?: string
 }
 const filePath = path.join(__dirname, "..", "output", "addresses.json")
 
