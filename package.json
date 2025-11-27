@@ -12,8 +12,8 @@
 		"typechain": "TS_NODE_TRANSPILE_ONLY=true hardhat typechain"
 	},
 	"devDependencies": {
-		"@nomicfoundation/hardhat-toolbox": "^4.0.0",
-		"hardhat": "^2.21.0"
+		"@nomicfoundation/hardhat-toolbox": "^6.0.0",
+		"hardhat": "^2.26.0"
 	},
 	"keywords": [],
 	"author": "",

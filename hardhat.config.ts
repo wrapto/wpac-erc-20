@@ -15,7 +15,7 @@ const account = process.env.PRIVATE_KEY;
 const POLYGON_AMOY_RPC = process.env.POLYGON_AMOY_RPC;
 const BSC_TESTNET_RPC = process.env.BSC_TESTNET_RPC;
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
-const Ethereum_SEPOLIA_RPC = process.env.Ethereum_SEPOLIA_RPC;
+const ETHEREUM_SEPOLIA_RPC = process.env.ETHEREUM_SEPOLIA_RPC;
 
 // Mainnet RPC URLs
 const POLYGON_MAINNET_RPC = process.env.POLYGON_MAINNET_RPC;
@@ -29,11 +29,11 @@ export const PROXY_ADDRESSES: Record<string, string> = {
 	polygon_amoy: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
 	bsc_testnet: "0xA9A2511Bb9cE4aCF4F02D679Af836a0fcC8c8AF7",
 	base_sepolia: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
-	ethereum_sepolia: "",
-	polygon: "",
-	bsc: "",
-	base: "",
-	ethereum: "",
+	ethereum_sepolia: "0xa19cE2a5855bfef29EEE8781E3e6E55BCB039C91",
+	polygon: "0x2f77E0afAEE06970Bf860B8267b5aFECFFF6F216",
+	bsc: "0x10004a9A742ec135c686C9aCed00FA3C93D66866",
+	base: "0x10004a9A742ec135c686C9aCed00FA3C93D66866",
+	ethereum: "0x55a2f45C72656BC205B42F07416d5E1bE2c68745",
 };
 
 let config: HardhatUserConfig;
@@ -72,9 +72,9 @@ config = {
 				accounts: account ? [account] : [],
 			},
 		}),
-		...(Ethereum_SEPOLIA_RPC && {
+		...(ETHEREUM_SEPOLIA_RPC && {
 			ethereum_sepolia: {
-				url: Ethereum_SEPOLIA_RPC,
+				url: ETHEREUM_SEPOLIA_RPC,
 				accounts: account ? [account] : [],
 			},
 		}),
