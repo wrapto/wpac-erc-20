@@ -15,25 +15,31 @@ const account = process.env.PRIVATE_KEY;
 const POLYGON_AMOY_RPC = process.env.POLYGON_AMOY_RPC;
 const BSC_TESTNET_RPC = process.env.BSC_TESTNET_RPC;
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
+const KAVA_TESTNET_RPC = process.env.KAVA_TESTNET_RPC;
 const ETHEREUM_SEPOLIA_RPC = process.env.ETHEREUM_SEPOLIA_RPC;
 
 // Mainnet RPC URLs
 const POLYGON_MAINNET_RPC = process.env.POLYGON_MAINNET_RPC;
 const BSC_MAINNET_RPC = process.env.BSC_MAINNET_RPC;
 const BASE_MAINNET_RPC = process.env.BASE_MAINNET_RPC;
+const KAVA_MAINNET_RPC = process.env.KAVA_MAINNET_RPC;
 const ETHEREUM_MAINNET_RPC = process.env.ETHEREUM_MAINNET_RPC;
 
 // Proxy addresses for each network (these don't change after deployment)
 export const PROXY_ADDRESSES: Record<string, string> = {
 	localhost: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+
+	ethereum_sepolia: "0xa19cE2a5855bfef29EEE8781E3e6E55BCB039C91",
 	polygon_amoy: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
 	bsc_testnet: "0xA9A2511Bb9cE4aCF4F02D679Af836a0fcC8c8AF7",
 	base_sepolia: "0x1F9EcDf71DDb39022728B53f5584621762e466be",
-	ethereum_sepolia: "0xa19cE2a5855bfef29EEE8781E3e6E55BCB039C91",
+	kava_testnet: "0xa19cE2a5855bfef29EEE8781E3e6E55BCB039C91",
+
+	ethereum: "0x55a2f45C72656BC205B42F07416d5E1bE2c68745",
 	polygon: "0x2f77E0afAEE06970Bf860B8267b5aFECFFF6F216",
 	bsc: "0x10004a9A742ec135c686C9aCed00FA3C93D66866",
 	base: "0x10004a9A742ec135c686C9aCed00FA3C93D66866",
-	ethereum: "0x55a2f45C72656BC205B42F07416d5E1bE2c68745",
+	kava: "0xa19cE2a5855bfef29EEE8781E3e6E55BCB039C91",
 };
 
 let config: HardhatUserConfig;
@@ -43,10 +49,10 @@ config = {
 	solidity: {
 		version: "0.8.20",
 		settings: {
-		  optimizer: {
-			enabled: true,
-			runs: 200
-		  }
+			optimizer: {
+				enabled: true,
+				runs: 200
+			}
 		}
 	},
 	networks: {
@@ -54,6 +60,12 @@ config = {
 			allowUnlimitedContractSize: false,
 		},
 		// Testnet Networks
+		...(ETHEREUM_SEPOLIA_RPC && {
+			ethereum_sepolia: {
+				url: ETHEREUM_SEPOLIA_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
 		...(POLYGON_AMOY_RPC && {
 			polygon_amoy: {
 				url: POLYGON_AMOY_RPC,
@@ -72,13 +84,20 @@ config = {
 				accounts: account ? [account] : [],
 			},
 		}),
-		...(ETHEREUM_SEPOLIA_RPC && {
-			ethereum_sepolia: {
-				url: ETHEREUM_SEPOLIA_RPC,
+		...(KAVA_TESTNET_RPC && {
+			kava_testnet: {
+				url: KAVA_TESTNET_RPC,
 				accounts: account ? [account] : [],
 			},
 		}),
+
 		// Mainnet Networks
+		...(ETHEREUM_MAINNET_RPC && {
+			ethereum: {
+				url: ETHEREUM_MAINNET_RPC,
+				accounts: account ? [account] : [],
+			},
+		}),
 		...(POLYGON_MAINNET_RPC && {
 			polygon: {
 				url: POLYGON_MAINNET_RPC,
@@ -97,15 +116,19 @@ config = {
 				accounts: account ? [account] : [],
 			},
 		}),
-		...(ETHEREUM_MAINNET_RPC && {
-			ethereum: {
-				url: ETHEREUM_MAINNET_RPC,
+		...(KAVA_MAINNET_RPC && {
+			kava: {
+				url: KAVA_MAINNET_RPC,
 				accounts: account ? [account] : [],
 			},
 		}),
 	},
 	etherscan: {
 		apiKey: etherscanApiKey!,
+		// For Kava
+		// apiKey: {
+		// 	kava: "9MgwdOWmMs", //"api key is not required by the Kava explorer, but can't be empty",
+		// },
 		customChains: [
 			{
 				network: "bsc_testnet",
@@ -163,13 +186,20 @@ config = {
 					browserURL: "https://basescan.com",
 				},
 			},
+			{
+				network: 'kava',
+				chainId: 2222,
+				urls: {
+					apiURL: 'https://api.verify.mintscan.io/evm/api/0x8ae',
+					browserURL: 'https://kavascan.com',
+				},
+			},
 		],
 	},
 	gasReporter: {
 		currency: "USD",
 		enabled: true,
-		excludeContracts: [],
-		src: "./contracts",
+		excludeContracts: []
 	},
 	typechain: {
 		outDir: "./types",
